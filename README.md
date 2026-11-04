@@ -97,7 +97,7 @@ Open **System → Argon Config** for login layouts, colors, glass effects, wallp
 
 Local image and video backgrounds are supported, along with Bing, Unsplash and Wallhaven wallpapers. Unsplash requires an API access key. Browser icons and login logos accept PNG files, 16–1024 pixels per side, up to 1 MiB; browser icons must be square.
 
-This fork also offers **Waifu.im** anime wallpapers. Select Waifu.im as the wallpaper source and save and apply. No API key is required; requests use the SFW filter and failures fall back to a local background. Upstream online updates can replace this fork's changes, so use packages built from this fork when updating.
+This fork also offers **Waifu (NEKOS.BEST / Wallhaven)** anime wallpapers. Portrait screens prefer NEKOS.BEST's Waifu images, while landscape screens use Wallhaven anime wallpapers; the browser switches when the viewport orientation changes. No API key is required, and both sources use SFW content. Unsplash and Wallhaven also provide orientation-specific images; Bing and local backgrounds retain their existing behavior. Waifu.im announced its shutdown and is not used. Upstream online updates can replace this fork's changes, so use packages built from this fork when updating.
 
 Under **Theme updates**, check the latest stable release, read its release notes and download the package matching your firmware's package manager.
 

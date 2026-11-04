@@ -17,6 +17,15 @@ CACHE="/var/run/argon_${WEB_PIC_SRC}.url"
 WRLOCK="/var/lock/argon_${WEB_PIC_SRC}.lock"
 
 fetch_pic_url() {
+	local orientation_arg=""
+	local resolution="1920x1080"
+	local ratios=""
+	[ "$ORIENTATION" = portrait ] && resolution="1080x1920"
+	[ -z "$ORIENTATION" ] || orientation_arg="&orientation=$ORIENTATION"
+	case "$ORIENTATION" in
+		landscape) ratios='&ratios=16x9,16x10,21x9' ;;
+		portrait) ratios='&ratios=9x16,10x16,9x18' ;;
+	esac
 	case "$WEB_PIC_SRC" in
 	bing)
 		local picpath="$(wget -T3 -qO- \
@@ -27,7 +36,7 @@ fetch_pic_url() {
 		;;
 	unsplash)
 		if [ -n "$API_KEY" ]; then
-			wget -T3 -qO- "https://api.unsplash.com/photos/random?client_id=${API_KEY}" |
+			wget -T3 -qO- "https://api.unsplash.com/photos/random?client_id=${API_KEY}${orientation_arg}" |
 				jsonfilter -qe '@["urls"]["regular"]'
 		fi
 		;;
@@ -35,13 +44,13 @@ fetch_pic_url() {
 		local collection_id="${WEB_PIC_SRC#unsplash_}"
 		if [ -n "$API_KEY" ]; then
 			wget -T3 -qO- \
-				"https://api.unsplash.com/photos/random?client_id=${API_KEY}&collections=${collection_id}" |
+				"https://api.unsplash.com/photos/random?client_id=${API_KEY}&collections=${collection_id}${orientation_arg}" |
 				jsonfilter -qe '@["urls"]["regular"]'
 		fi
 		;;
 	wallhaven)
 		wget -T3 -qO- \
-			"https://wallhaven.cc/api/v1/search?resolutions=1920x1080&sorting=random" |
+			"https://wallhaven.cc/api/v1/search?atleast=${resolution}${ratios}&sorting=random" |
 			jsonfilter -qe "@.data[0].path"
 		;;
 	wallhaven_*)
@@ -50,13 +59,27 @@ fetch_pic_url() {
 		[ "$EXACT_RESO" -eq "1" ] || use_reso="atleast"
 		[ -z "$API_KEY" ] || API_KEY="apikey=$API_KEY&"
 		wget -T3 -qO- \
-			"https://wallhaven.cc/api/v1/search?${API_KEY}q=id%3A${tag_id}&${use_reso}=1920x1080&sorting=random" |
+			"https://wallhaven.cc/api/v1/search?${API_KEY}q=id%3A${tag_id}&${use_reso}=${resolution}${ratios}&sorting=random" |
 			jsonfilter -qe '@.data[0].path'
 		;;
 	waifu)
+		# NEKOS.BEST's waifu collection mainly contains portraits. Use it
+		# for portrait screens when the returned dimensions match; use the
+		# Wallhaven anime collection for landscape or as a fallback.
+		if [ "$ORIENTATION" = portrait ]; then
+			local response width height url
+			response="$(wget -T3 -qO- -U 'ArgonTheme (https://github.com/vanmaxon/luci-theme-argon)' 'https://nekos.best/api/v2/waifu')"
+			width="$(printf '%s' "$response" | jsonfilter -qe '@.results[0].dimensions.width')"
+			height="$(printf '%s' "$response" | jsonfilter -qe '@.results[0].dimensions.height')"
+			url="$(printf '%s' "$response" | jsonfilter -qe '@.results[0].url')"
+			case "$width:$height" in
+				*[!0-9:]*|:*|*:) ;;
+				*) if [ "$width" -lt "$height" ] && [ -n "$url" ]; then echo "$url"; return; fi ;;
+			esac
+		fi
 		wget -T3 -qO- \
-			"https://api.waifu.im/images?IsNsfw=False&PageSize=1" |
-			jsonfilter -qe '@.items[0].url'
+			"https://wallhaven.cc/api/v1/search?categories=010&purity=100&atleast=${resolution}${ratios}&sorting=random" |
+			jsonfilter -qe '@.data[0].path'
 		;;
 	esac
 }
@@ -94,6 +117,7 @@ case "$1" in
 "list")
 	json_init
 	json_add_object "get_url"
+	json_add_string "orientation" ""
 	json_close_object
 	json_dump
 	json_cleanup
@@ -102,6 +126,17 @@ case "$1" in
 	case "$2" in
 	"get_url")
 		read -r input
+		ORIENTATION=""
+		json_load "$input" 2>/dev/null && json_get_var ORIENTATION orientation
+		case "$ORIENTATION" in landscape|portrait) ;; *) ORIENTATION="" ;; esac
+		case "$WEB_PIC_SRC" in
+			unsplash*|wallhaven*|waifu)
+				if [ -n "$ORIENTATION" ]; then
+					CACHE="/var/run/argon_${WEB_PIC_SRC}_${ORIENTATION}.url"
+					WRLOCK="/var/lock/argon_${WEB_PIC_SRC}_${ORIENTATION}.lock"
+				fi
+				;;
+		esac
 		case "$WEB_PIC_SRC" in
 		unsplash|unsplash_*)
 			if [ -z "$API_KEY" ]; then

@@ -237,6 +237,30 @@ function randomIndex() { return 0; }
 	});
 });
 
+test('adaptive online wallpapers select and validate both orientations', () => {
+	const setup = `
+let media = "/luci-static/argon";
+let fs = { access: path => true };
+let cfg = { get_first: (p, s, key) => key == 'online_wallpaper' ? settings.source : null };
+let ubus = { call: (object, method, args) => ({ url: settings[args.orientation] }) };
+let videoTypes = " mp4 webm ";
+function fetchMedia() { return [{ type: 'jpg', url: '/local.jpg' }]; }
+function randomIndex() { return 0; }
+`;
+	const selected = settings => runUcodeSnippet('ucode/template/themes/argon/login_background.ut',
+		'function selectBackground', '\n\tconst bgArry', setup, 'selectBackground("/background/")', settings);
+	for (const source of ['waifu', 'unsplash', 'wallhaven']) {
+		let result = selected({ source, landscape: 'https://example.com/wide.jpg', portrait: 'https://example.com/tall.jpg' });
+		assert.equal(result.bgUrl, 'https://example.com/wide.jpg');
+		assert.equal(result.portraitUrl, 'https://example.com/tall.jpg');
+		result = selected({ source, landscape: 'http://invalid', portrait: 'https://example.com/tall.jpg' });
+		assert.equal(result.bgUrl, '/luci-static/argon/img/bg1.webp');
+		assert.equal(result.portraitUrl, 'https://example.com/tall.jpg');
+		result = selected({ source, landscape: '', portrait: '' });
+		assert.equal(result.bgUrl, '/local.jpg');
+	}
+});
+
 test('authentication fields preserve numeric length limits and escape attributes', () => {
 	const source = fs.readFileSync(path.join(root, 'ucode/template/themes/argon/login_form.ut'), 'utf8');
 	const first = source.indexOf('{%- if (auth_fields): %}');
@@ -286,6 +310,8 @@ json_init() { json_url=''; }
 json_add_string() { [ "$1" = url ] && json_url="$2"; }
 json_dump() { printf '{"url":"%s"}\\n' "$json_url"; }
 json_cleanup() { :; }
+json_load() { :; }
+json_get_var() { ORIENTATION=''; }
 flock() { return 0; }
 wget() { return 1; }
 jsonfilter() { return 1; }

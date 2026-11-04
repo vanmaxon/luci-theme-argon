@@ -97,7 +97,7 @@ apk add --allow-untrusted ./luci-theme-argon-*.apk
 
 背景支持本地图片、视频，以及 Bing、Unsplash、Wallhaven 在线壁纸；Unsplash 需填写 API Access Key。网站图标和登录 Logo 支持 PNG，每边 16–1024 像素、最大 1 MiB，网站图标需为正方形。
 
-本 fork 还支持 **Waifu.im** 二次元壁纸：在壁纸来源中选择 Waifu.im，保存并应用。该选项无需 API 密钥，默认请求全年龄图片，无法访问服务时回退至本地背景。主题内的上游在线更新可能覆盖此 fork 的改动，更新时请使用本 fork 构建的主题包。
+本 fork 还支持 **Waifu (NEKOS.BEST / Wallhaven)** 二次元壁纸：竖屏优先使用 NEKOS.BEST 的 Waifu 图片，横屏使用 Wallhaven 的动漫图片，按窗口方向自动切换。无需 API 密钥，使用全年龄内容；图片获取失败时会回退。Unsplash 和 Wallhaven 也支持横竖屏图片，Bing 和本地图片沿用原有背景。Waifu.im 曾公告停止服务，未作为图片源使用。主题内的上游在线更新可能覆盖此 fork 的改动，更新时请使用本 fork 构建的主题包。
 
 在**主题更新**中手动检查最新稳定版、查看更新日志，并下载与固件包管理器匹配的安装包。
 

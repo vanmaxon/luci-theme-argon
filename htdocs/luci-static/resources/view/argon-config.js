@@ -160,7 +160,7 @@ return view.extend({
 		o.value('bing', _('Bing'));
 		o.value('unsplash', _('Unsplash'));
 		o.value('wallhaven', _('Wallhaven'));
-		o.value('waifu', 'Waifu.im');
+		o.value('waifu', 'Waifu (NEKOS.BEST / Wallhaven)');
 		o.default = 'none';
 		o.rmempty = false;
 
