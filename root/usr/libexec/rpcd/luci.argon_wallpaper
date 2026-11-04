@@ -53,6 +53,11 @@ fetch_pic_url() {
 			"https://wallhaven.cc/api/v1/search?${API_KEY}q=id%3A${tag_id}&${use_reso}=1920x1080&sorting=random" |
 			jsonfilter -qe '@.data[0].path'
 		;;
+	waifu)
+		wget -T3 -qO- \
+			"https://api.waifu.im/images?IsNsfw=False&PageSize=1" |
+			jsonfilter -qe '@.items[0].url'
+		;;
 	esac
 }
 

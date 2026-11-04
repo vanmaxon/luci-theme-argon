@@ -205,6 +205,7 @@ test('integrated defaults keep local wallpapers and expose a masked Unsplash key
  const state = fixture();
  await state.render();
  assert.equal(state.button('online_wallpaper').default, 'none');
+ assert.equal(state.button('online_wallpaper').choices.waifu, 'Waifu.im');
  assert.equal(state.button('use_api_key').password, true);
  assert.deepEqual(state.button('use_api_key').dependency, ['online_wallpaper', 'unsplash']);
  for (const name of ['blur', 'blur_dark'])
